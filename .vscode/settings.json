@@ -1,6 +1,7 @@
 {
   "cSpell.words": ["Vitesse"],
   "prettier.enable": false,
+  "editor.cursorSmoothCaretAnimation": true,
   "typescript.tsdk": "node_modules/typescript/lib",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true,
