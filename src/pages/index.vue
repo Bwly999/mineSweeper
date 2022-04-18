@@ -1,18 +1,13 @@
 <script setup lang="ts">
+import type { BlockState } from '~/types/mine'
+const pageTitle = useTitle()
+pageTitle.value = 'mineSweeper'
 
-interface BlockState {
-  x: number
-  y: number
-  revealed: boolean
-  mine?: boolean
-  flagged?: boolean
-  adjacentMines: number
-}
 const HEIGHT = 10
 const WIDTH = 10
 const mineState = reactive(Array.from({ length: HEIGHT },
   (_, x) => Array.from({ length: WIDTH },
-    (_, y): BlockState => ({ x, y, revealed: false, adjacentMines: 0 }))),
+    (_, y): BlockState => ({ x, y, revealed: false, adjacentMines: 0, flagged: false }))),
 )
 
 function generateMines(count: number) {
@@ -75,15 +70,40 @@ function reveal(mine: BlockState, depth = 0) {
   }
 }
 
-function getBlockClass(state: BlockState) {
-  if (!state.revealed)
-    return 'bg-gray-500/50'
-
-  return state.mine ? 'text-red' : 'dark:text-blueGray text-black'
+function initBlocks(mineNum = 5) {
+  generateMines(mineNum)
+  calcAdjacentMines()
 }
 
-generateMines(10)
-calcAdjacentMines()
+function flag(mine: BlockState) {
+  if (mine.revealed)
+    return
+  mine.flagged = !mine.flagged
+}
+const blockTextColors = [
+  'text-gray-500',
+  'text-blue-500',
+  'text-pink-500',
+  'text-green-500',
+  'text-red-500',
+  'text-emerald-500',
+  'text-amber-500',
+]
+const dev = ref(true)
+
+function getBlockClass(state: BlockState) {
+  if (state.flagged)
+    return 'dark:bg-white bg-red-100'
+
+  if (!state.revealed && !dev.value)
+    return 'bg-gray-500/50'
+    // return blockTextColors[state.adjacentMines]
+
+  // return state.mine ? 'text-red' : 'dark:text-blueGray text-black'
+  return state.mine ? 'bg-red-400/90' : blockTextColors[state.adjacentMines]
+}
+
+initBlocks(10)
 </script>
 
 <template>
@@ -101,17 +121,24 @@ calcAdjacentMines()
           hover:bg-blueGray
           :class="getBlockClass(state)"
           @click="reveal(state)"
+          @contextmenu.prevent="flag(state)"
         >
-          <template v-if="state.revealed">
-            <div v-if="state.mine" class="text-red">
+          <template v-if="state.revealed || dev">
+            <div v-if="state.mine" class="text-white">
               <div i-mdi-mine />
             </div>
             <div v-else>
               {{ state.adjacentMines }}
             </div>
           </template>
+          <template v-else>
+            <div v-if="state.flagged" dark:text-emerald-900 text-red-500>
+              <div i-carbon:flag-filled />
+            </div>
+          </template>
         </button>
       </div>
     </div>
+    <!-- <Qin /> -->
   </div>
 </template>
